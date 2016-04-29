@@ -4,10 +4,12 @@
 
 cameras:
     camera1:
-        type: perspective
-        focal_length: [[1,2]]
-        # type: isometric
-        # axis: [0,10]
+        type: isometric
+        # axis: [.1, 3.5]
+        # type: perspective
+        # focal_length: [[1,2]]
+
+
 
 
 lights:
@@ -25,6 +27,21 @@ sources:
     idw:
         type: GeoJSON
         url: squareGrid.geojson
+        # url: squareGrid2.geojson
+        url: map.geojson
+global:
+   a: red
+   colors: # group common colors together
+      color1: red
+      color2: green
+      color3: |
+        function() {
+              console.log('asd')
+             var arr = Object.keys( obj ).map(function ( key ) { return obj[key]; });
+             var min = Math.min.apply( null, arr );
+             var max = Math.max.apply( null, arr );
+             return 'asdas'
+              }
 
 layers:
 
@@ -86,30 +103,79 @@ layers:
                 order: function() { return feature.sort_key; }
                 color: |
                     function () {
-
                         var h = feature.height || 20;
                         h = Math.min((h + 50)/ 255, .8); // max brightness: .8
                         h = Math.max(h, .4); // min brightness: .4
                         return [h, h, h];
                     }
-        # 3d-buildings:
-        #     filter: { $zoom: { min: 15 } }
-        #     draw:
-        #         polygons:
-        #             extrude: function () { return feature.height > 20 || $zoom >= 16; }
+        3d-buildings:
+            filter: { $zoom: { min: 15 } }
+            draw:
+                polygons:
+                    extrude: function () { return feature.height > 20*8 || $zoom >= 10; }
 
     idw_surface:
         data: { source: idw }
         draw:
             polygons:
-                a: a.js
+                order: 99
+                # color: red
+                color: a
                 extrude: |
                   function () {
-                    return feature.z *10
+                  console.log('this ' )
+                  return feature.z * 100 || $zoom >= 10;
                   }
-                order: 99
-                color: [.6, .6, .6]
-                # color: |
+                # shaders:
+                #   blocks:
+                #       global: |
+                #           float unpack(vec4 h) {
+                #               return (h.r * 1. + h.g / 256. + h.b / 65536.);
+                #           }
+                #       color: |
+                #           float height = unpack(color);
+                #           color = vec4(1.0);
+                #
+                #           // Color ramps
+                #           vec3 colors[5];
+                #           colors[0] = vec3(0.);
+                #           colors[1] = vec3(.4, .55, .3);
+                #           colors[2] = vec3(.9, .9, .6);
+                #           colors[3] = vec3(.6, .4, .3);
+                #           colors[4] = vec3(1., 1., 1.);
+                #
+                #           float step1 = 0.5015; // bottom
+                #           float step2 = 0.503;
+                #           float step3 = 0.505;
+                #           float step4 = 0.51;
+                #           float step5 = 0.52; // top
+                #
+                #           color.rgb = mix(colors[0], colors[1], smoothstep(step1, step2, height));
+                #           color.rgb = mix(color.rgb, colors[2], smoothstep(step2, step3, height));
+                #           color.rgb = mix(color.rgb, colors[3], smoothstep(step3, step4, height));
+                #           color.rgb = mix(color.rgb, colors[4], smoothstep(step4, step5, height));
+                # # color: |
+                #
+                #   function() {
+                #
+                #         var myFunc = function (object) {
+                #         var shortest = Number.MAX_VALUE;
+                #         for (var key in object) {
+                #         console.log(object)
+                #           if (object[key] < shortest) {
+                #             shortest = object[key];
+                #           }
+                #         };
+                #
+                #         return shortest;
+                #     };
+                #     console.log(myFunc(JSON.stringify(feature)))
+                #   }
+                #
+                #
+                #
+                #
+                #
                 #     function () {
                 #         function makeGradientColor(color1, color2, percent) {
                 #             var newColor = {};
